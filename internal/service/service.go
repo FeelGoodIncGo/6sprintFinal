@@ -1,46 +1,56 @@
 package service
 
 import (
-	"errors"
 	"fmt"
-	"strings"
 	"unicode"
 
 	"github.com/Yandex-Practicum/go1fl-sprint6-final/pkg/morse"
 )
 
-// Функция для работы с азбукой Морзе
-func Text(tM string) (string, error) {
+type Converter struct {
+	runeToMorse       map[rune]string
+	morseToRune       map[string]rune
+	charSeparator     string
+	wordSeparator     string
+	convertToUpper    bool
+	trailingSeparator bool
 
-	// Удаляем пробелы
-	input := strings.TrimSpace(tM)
+	Handling ErrorHandler
+}
+type ErrorHandler func(error) string
 
-	// Проверка на пустую строку
-	if input == "" {
-		return "", errors.New("empty string")
-	}
-
-	// Проверка символов на соответствие азбуке Морзе
-	isMorse := func(c rune) bool {
-		return c != ' ' && c != '-' && c != '.'
-	}
-	// Поиск символа, который не является частью азбуки Морзе
-	index := strings.IndexFunc(input, isMorse)
-
-	// Проходим по найденным символам, преобразуем в большие буквы, и проверяем на наличие в азбуке Морзе
-	if index >= 0 {
-		for _, v := range input {
-			if v == ' ' {
-				continue
-			}
-			upperR := unicode.ToUpper(v)
-			if _, ok := morse.DefaultMorse[upperR]; !ok {
-				return "", fmt.Errorf("unknown symbol: %q", v)
-			}
-		}
-		// Преобразуем в азбуку Морзе
+// AutoConvert автоматически определяет и конвертирует текст в Морзе или Морзе в текст
+func (c *Converter) AutoConvert(input string) (string, error) {
+	// Определяем текст или код Морзе
+	if c.isText(input) {
+		// Конвертируем текст в Морзе
 		return morse.ToMorse(input), nil
+	} else if c.isMorse(input) {
+		// Конвертируем Морзе в текст
+		return morse.ToText(input), nil
 	}
-	// Преобразуем в текст
-	return morse.ToText(input), nil
+	return "", fmt.Errorf("Error format")
+}
+
+// isText проверка на строку текста
+func (c *Converter) isText(input string) bool {
+	for _, char := range input {
+		if !unicode.IsLetter(char) && !unicode.IsSpace(char) {
+			return false
+		}
+	}
+	return true
+}
+
+// isMorse провека на код Морзе
+func (c *Converter) isMorse(input string) bool {
+	morseChars := map[rune]bool{
+		'.': true, '-': true, ' ': true,
+	}
+	for _, char := range input {
+		if !morseChars[char] {
+			return false
+		}
+	}
+	return true
 }
