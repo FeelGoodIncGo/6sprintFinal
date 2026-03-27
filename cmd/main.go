@@ -11,6 +11,6 @@ func main() {
 	s := server.NewServer(logger)
 
 	if err := s.Server.ListenAndServe(); err != nil {
-		logger.Fatal(err)
+		logger.Fatal("The server did not start:", err)
 	}
 }

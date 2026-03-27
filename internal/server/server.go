@@ -10,7 +10,7 @@ import (
 
 type Server struct {
 	logger *log.Logger
-	Server http.Server
+	Server *http.Server
 }
 
 // Создаем роутер для каждого хендлер-обработчика
@@ -21,7 +21,7 @@ func NewServer(logger *log.Logger) *Server {
 
 	return &Server{
 		logger: logger,
-		Server: http.Server{
+		Server: &http.Server{
 			Addr:         ":8080",
 			Handler:      router,
 			ErrorLog:     logger,
